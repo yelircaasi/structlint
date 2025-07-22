@@ -107,6 +107,26 @@ def tsts(ctx: click.Context) -> bool:
     return problems
 
 
+@structlint_cli.command(name="show-config", help="Display current configuration.")
+@click.pass_context
+def show_config(ctx: click.Context) -> bool:
+    cfg: Configuration = ctx.obj["CFG"]
+
+    click.echo(str(cfg))
+    click.echo()
+
+    return False
+
+
+@structlint_cli.command(name="show-default-config", help="Display default configuration.")
+@click.pass_context
+def show_default_config(ctx: click.Context) -> bool:
+    click.echo(str(Configuration()))
+    click.echo()
+
+    return False
+
+
 # import re
 # import subprocess
 
