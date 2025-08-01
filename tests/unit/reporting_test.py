@@ -15,7 +15,7 @@ from structlint.reporting import (
 from structlint.utils import Color
 
 
-def test_make_methods_report():
+def test_make_methods_report() -> None:
     result = make_methods_report([])
     assert "METHOD ORDER" in result
     assert "No problems detected." in result
@@ -71,7 +71,7 @@ def test_make_imports_report(
         assert substring not in result
 
 
-def test_make_missing_report():
+def test_make_missing_report() -> None:
     assert make_missing_report([], lambda s: s) == ""
 
     result = make_missing_report(["a", "b"], lambda s: f"{s}")
@@ -80,7 +80,7 @@ def test_make_missing_report():
     assert "b" in result
 
 
-def test_make_unexpected_report():
+def test_make_unexpected_report() -> None:
     assert make_unexpected_report([], lambda s: s) == ""
 
     result = make_unexpected_report(["a", "b"], lambda s: f"{s}")
@@ -89,7 +89,7 @@ def test_make_unexpected_report():
     assert "b" in result
 
 
-def test_make_order_report():
+def test_make_order_report() -> None:
     result = make_order_report([], [], set(), lambda s: s)
     assert result == ""
 

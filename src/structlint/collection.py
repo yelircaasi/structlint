@@ -7,7 +7,6 @@ from collections.abc import Callable
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from typing import Self
 
 from .regexes import Regex
 from .utils import (
@@ -32,24 +31,12 @@ class Objects:
 
     def __init__(self, functions: list[tuple[Path, int, str]], classes: list[ClassInfo]):
         self.functions = functions
-        self.classes = add_inherited_methods(classes)
+        self._classes = classes
+        self._all_classes = add_inherited_methods(classes)
 
     @property
     def function_strings(self) -> list[str]:
         return [f"{p}:{i:0>3}:{func}" for p, i, func in self.functions]
-
-    @property
-    def method_strings(self) -> list[str]:
-        def _chain(_l: list[list]) -> list:
-            return list(chain.from_iterable(_l))
-
-        _classes = sorted(self.classes, key=lambda tup: tup[0])
-        quads = _chain([[(p, i, c, m) for m in methods] for p, i, c, methods, _, __ in _classes])
-        return [f"{p}:{i:0>3}:{c}.{m}" for p, i, c, m in quads]
-
-    @property
-    def strings(self) -> list[str]:
-        return self.method_strings + self.function_strings
 
     @property
     def strings_without_methods(self) -> list[str]:
@@ -57,30 +44,47 @@ class Objects:
 
     @property
     def classes_only(self) -> list[str]:
-        return list(set([f"{p}:{i:0>3}:{cl}" for p, i, cl, _, __, ___ in self.classes]))
+        return list(set([f"{p}:{i:0>3}:{cl}" for p, i, cl, _, __, ___ in self._classes]))
 
     @property
     def methodless(self) -> list[str]:
-        return [f"{p}:{i:0>3}:{cl}" for p, i, cl, methods, _, __ in self.classes if not methods]
+        return [f"{p}:{i:0>3}:{cl}" for p, i, cl, methods, _, __ in self._classes if not methods]
 
     @property
-    def test_only(self) -> Self:
-        self.functions = list(filter(lambda t: "test" in t[-1], self.functions))
-        self.classes = list(filter(lambda t: "Test" in t[2], self.classes))
+    def test_only(self) -> "Objects":
+        _functions = list(filter(lambda t: "test" in t[-1], self.functions))
+        _classes = list(filter(lambda t: "Test" in t[2], self._classes))
 
-        return self
+        return Objects(functions=_functions, classes=_classes)
+
+    def strings(self, include_inherited: bool = True) -> list[str]:
+        return self.method_strings(include_inherited) + self.function_strings
+
+    def classes(self, include_inherited: bool = True) -> list[ClassInfo]:
+        if include_inherited:
+            return self._all_classes
+        return self._classes
+
+    def method_strings(self, include_inherited: bool = True) -> list[str]:
+        def _chain(_l: list[list]) -> list:
+            return list(chain.from_iterable(_l))
+
+        _classes = self.classes(include_inherited)
+        quads = _chain([[(p, i, c, m) for m in methods] for p, i, c, methods, _, __ in _classes])
+        return [f"{p}:{i:0>3}:{c}.{m}" for p, i, c, m in quads]
 
     def apply(
         self,
         processor: Callable[[str], str],
         ignore: re.Pattern | None = None,
         classes_only: bool = False,
+        include_inherited: bool = True,
     ) -> list[str]:
         _strings: list[str]
         if classes_only:
             _strings = self.classes_only + self.function_strings
         else:
-            _strings = self.strings
+            _strings = self.strings(include_inherited)
         if ignore:
             _strings = list(filter(partial(path_matches_not, path_pattern=ignore), _strings))
         return list(filter(bool, map(processor, _strings)))

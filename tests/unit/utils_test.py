@@ -37,7 +37,7 @@ from structlint.utils import (
 )
 
 
-def test_get_project_root():
+def test_get_project_root() -> None:
     PRIOR_PATH = Path.cwd()
 
     project_root = get_project_root()
@@ -53,7 +53,7 @@ def test_get_project_root():
     os.chdir(PRIOR_PATH)
 
 
-def test_get_project_root__error():
+def test_get_project_root__error() -> None:
     with patch.object(Path, "cwd", return_value=Path("/nonexistent")):
         with pytest.raises(
             FileNotFoundError,
@@ -62,11 +62,11 @@ def test_get_project_root__error():
             get_project_root()
 
 
-def test_default_module_root_dir():
+def test_default_module_root_dir() -> None:
     assert default_module_root_dir() == Path("src/structlint")
 
 
-def test_default_module_name():
+def test_default_module_name() -> None:
     assert default_module_name() == "structlint"
 
 
@@ -104,21 +104,21 @@ def test_move_path(to_move: Path, old: Path, new: Path, expected: Path):
     assert move_path(to_move, old, new) == expected
 
 
-def test_always_true():
+def test_always_true() -> None:
     assert always_true("")
     assert always_true("a")
     assert always_true("Whatever, some longer string!")
 
 
-def test_assert_bool():
+def test_assert_bool() -> None:
     assert assert_bool(True) is True
     assert assert_bool(False) is False
 
     with pytest.raises(TypeError, match="Type 'bool' expected; found 'str'."):
-        assert_bool("True")
+        assert_bool("True")  # type: ignore
 
 
-def test_sort_on_path():
+def test_sort_on_path() -> None:
     pre = [
         "src/structlint/configuration.py:2:function_b",
         "src/structlint/configuration.py:1:function_a",
@@ -401,31 +401,31 @@ class TestColor:
     colorizer = Color
     test_string = "WhaTeVer"
 
-    def test_no_color(self):
+    def test_no_color(self) -> None:
         assert self.colorizer.no_color(self.test_string) == "WhaTeVer"
 
-    def test_red(self):
+    def test_red(self) -> None:
         assert self.colorizer.red(self.test_string) == "\x1b[31mWhaTeVer\x1b[0m"
 
-    def test_green(self):
+    def test_green(self) -> None:
         assert self.colorizer.green(self.test_string) == "\x1b[32mWhaTeVer\x1b[0m"
 
-    def test_cyan(self):
+    def test_cyan(self) -> None:
         assert self.colorizer.cyan(self.test_string) == "\x1b[36mWhaTeVer\x1b[0m"
 
-    def test_black(self):
+    def test_black(self) -> None:
         assert self.colorizer.black(self.test_string) == "\x1b[30mWhaTeVer\x1b[0m"
 
-    def test_yellow(self):
+    def test_yellow(self) -> None:
         assert self.colorizer.yellow(self.test_string) == "\x1b[33mWhaTeVer\x1b[0m"
 
-    def test_blue(self):
+    def test_blue(self) -> None:
         assert self.colorizer.blue(self.test_string) == "\x1b[34mWhaTeVer\x1b[0m"
 
-    def test_magenta(self):
+    def test_magenta(self) -> None:
         assert self.colorizer.magenta(self.test_string) == "\x1b[35mWhaTeVer\x1b[0m"
 
-    def test_white(self):
+    def test_white(self) -> None:
         assert self.colorizer.white(self.test_string) == "\x1b[37mWhaTeVer\x1b[0m"
 
 

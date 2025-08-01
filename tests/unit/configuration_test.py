@@ -218,12 +218,12 @@ assert str(default) == str(Configuration.from_dict(reimport))
 class TestDocsConfig:
     default = DocsConfig()
 
-    def test_dunder_str(self):
+    def test_dunder_str(self) -> None:
         export = str(self.default)
         reimport = tomllib.loads(export)["tool"]["structlint"]["docs"]
         assert str(self.default) == str(DocsConfig.from_dict(reimport))
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         default = DocsConfig()
         from_default_toml = DocsConfig.from_dict(
             tomllib.loads(DEFAULT_TOML)["tool"]["structlint"]["docs"]
@@ -243,14 +243,14 @@ class TestDocsConfig:
         )
         assert custom == from_custom_toml
 
-    def test_merge(self):
+    def test_merge(self) -> None:
         default = DocsConfig()
         other = DocsConfig(file_per_class=re.compile(r"Custom"))
         assert default.merge(file_per_class=re.compile(r"Custom")) == other
 
 
 class TestImportInfo:
-    def test_dunder_str(self):
+    def test_dunder_str(self) -> None:
         with_allowed = ImportInfo(is_internal=True, allowed={"a": {"b", "c"}})
         with_disallowed = ImportInfo(is_internal=False, disallowed={"a": {"b", "c"}})
 
@@ -259,7 +259,7 @@ class TestImportInfo:
             '[tool.structlint.imports.external_disallowed]\n"a" = ["b", "c"]'
         )
 
-    def test_ensure_xor(self):
+    def test_ensure_xor(self) -> None:
         with pytest.raises(
             ValueError, match="Only one of 'allowed' and 'disallowed' may be specified for imports."
         ):
@@ -272,26 +272,26 @@ class TestImportInfo:
 class TestImportsConfig:
     default = ImportsConfig()
 
-    def test_dunder_str(self):
+    def test_dunder_str(self) -> None:
         export = str(self.default)
         reimport = tomllib.loads(export)["tool"]["structlint"]["imports"]
         assert str(self.default) == str(ImportsConfig.from_dict(reimport))
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         default = ImportsConfig()
         raw_dict = tomllib.loads(DEFAULT_TOML)["tool"]["structlint"]["imports"]
         from_default_toml = ImportsConfig.from_dict(raw_dict)
         assert default == from_default_toml
 
         custom = ImportsConfig(
-            internal_allowed_everywhere=["utils"],
-            external_allowed_everywhere=["collections", "os", "pathlib", "re", "sys", "typing"],
+            internal_allowed_everywhere={"utils"},
+            external_allowed_everywhere={"collections", "os", "pathlib", "re", "sys", "typing"},
         )
         raw_dict = tomllib.loads(CUSTOM_TOML)["tool"]["structlint"]["imports"]
         from_custom_toml = ImportsConfig.from_dict(raw_dict)
         assert custom == from_custom_toml
 
-    def test_merge(self):
+    def test_merge(self) -> None:
         default = ImportsConfig()
         other = ImportsConfig(internal_allowed_everywhere={"structlint.random"})
         assert default.merge(internal_allowed_everywhere={"structlint.random"}) == other
@@ -300,24 +300,24 @@ class TestImportsConfig:
         other = ImportsConfig(internal_allowed_everywhere={"structlint.random"})
         assert default.merge(internal_allowed_everywhere={"random"}) == other
 
-    def test_fixer(self):
+    def test_fixer(self) -> None:
         default = ImportsConfig(module_name="hello")
         assert default._fixer("submodule") == "hello.submodule"
         assert default._fixer("hello.submodule") == "hello.submodule"
 
-    def test_check_conflicts(self):
-        assert self.default._check_conflicts() is None
+    def test_check_conflicts(self) -> None:
+        assert self.default._check_conflicts() is None  # type: ignore
 
 
 class TestMethodsConfig:
     default = MethodsConfig()
 
-    def test_dunder_str(self):
+    def test_dunder_str(self) -> None:
         export = str(self.default)
         reimport = tomllib.loads(export)["tool"]["structlint"]["methods"]
         assert str(self.default) == str(MethodsConfig.from_dict(reimport))
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         default = MethodsConfig()
         raw_dict = tomllib.loads(DEFAULT_TOML)["tool"]["structlint"]["methods"]
         from_default_toml = MethodsConfig.from_dict(raw_dict)
@@ -348,7 +348,7 @@ class TestMethodsConfig:
         from_custom_toml = MethodsConfig.from_dict(raw_dict)
         assert custom == from_custom_toml
 
-    def test_merge(self):
+    def test_merge(self) -> None:
         custom_ordering = (
             (re.compile(r"random_example", re.UNICODE), 4.5),
             (re.compile(r"def __init__", re.DOTALL | re.UNICODE), 0.0),
@@ -362,12 +362,12 @@ class TestMethodsConfig:
 class TestUnitTestsConfig:
     default = UnitTestsConfig()
 
-    def test_dunder_str(self):
+    def test_dunder_str(self) -> None:
         export = str(self.default)
         reimport = tomllib.loads(export)["tool"]["structlint"]["tests"]
         assert str(self.default) == str(UnitTestsConfig.from_dict(reimport))
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         default = UnitTestsConfig()
         from_default_toml = UnitTestsConfig.from_dict(
             tomllib.loads(DEFAULT_TOML)["tool"]["structlint"]["tests"]
@@ -379,7 +379,7 @@ class TestUnitTestsConfig:
         from_custom_toml = UnitTestsConfig.from_dict(raw_dict)
         assert custom == from_custom_toml
 
-    def test_merge(self):
+    def test_merge(self) -> None:
         default = UnitTestsConfig()
         other = UnitTestsConfig(file_per_class=re.compile(r"Custom"))
         assert default.merge(file_per_class=re.compile(r"Custom")) == other
@@ -388,24 +388,24 @@ class TestUnitTestsConfig:
 class TestConfiguration:
     default = Configuration()
 
-    def test_dunder_str(self):
+    def test_dunder_str(self) -> None:
         export = str(self.default)
         reimport = tomllib.loads(export)["tool"]["structlint"]
         reimported = Configuration.from_dict(reimport)
         assert str(self.default) == str(reimported)
 
-    def test_read(self):
+    def test_read(self) -> None:
         default_toml = Path(__file__).parent.parent / "_data/default.toml"
         assert Configuration.read(explicitly_passed=default_toml) == self.default
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         default = Configuration()
         from_default_toml = Configuration.from_dict(
             tomllib.loads(DEFAULT_TOML)["tool"]["structlint"]
         )
         assert default == from_default_toml
 
-    def test_merge(self):
+    def test_merge(self) -> None:
         default = Configuration()
-        other = Configuration(root_dir="some/root")
-        assert default.merge(root_dir="some/root") == other
+        other = Configuration(root_dir=Path("some/root"))
+        assert default.merge(root_dir=Path("some/root")) == other

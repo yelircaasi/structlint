@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from structlint.collection import (
+    ClassInfo,
     Objects,
     add_inherited_methods,
     collect_docs_objects,
@@ -15,13 +16,13 @@ from structlint.collection import (
 
 
 class TestObjects:
-    def test_function_strings(self):
+    def test_function_strings(self) -> None:
         functions = [
             (Path("src/module.py"), 0, "test_function"),
             (Path("src/utils.py"), 5, "helper_func"),
             (Path("lib/core.py"), 12, "process_data"),
         ]
-        classes = []
+        classes: list[ClassInfo] = []
 
         objects = Objects(functions=functions, classes=classes)
         expected = [
@@ -32,60 +33,26 @@ class TestObjects:
 
         assert objects.function_strings == expected
 
-    def test_method_strings(self):
-        functions = []
-        classes = [
-            (Path("src/models.py"), 0, "User", ["login", "logout"], {}, []),
-            (Path("src/base.py"), 1, "BaseModel", ["save", "delete"], {}, []),
-            (Path("src/admin.py"), 2, "AdminUser", ["ban_user"], {}, ["User"]),
-        ]
-
-        objects = Objects(functions=functions, classes=classes)
-        # Note: classes are sorted by path, methods are processed in order
-        expected = [
-            "src/admin.py:002:AdminUser.ban_user",
-            "src/admin.py:002:AdminUser.login",
-            "src/admin.py:002:AdminUser.logout",
-            "src/base.py:001:BaseModel.save",
-            "src/base.py:001:BaseModel.delete",
-            "src/models.py:000:User.login",
-            "src/models.py:000:User.logout",
-        ]
-
-        result = objects.method_strings
-        assert result == expected
-
-    def test_strings(self):
+    def test_strings_without_methods(self) -> None:
         functions = [(Path("src/utils.py"), 0, "helper")]
-        classes = [(Path("src/models.py"), 1, "User", ["login"], {}, [])]
+        classes: list[ClassInfo] = [(Path("src/models.py"), 1, "User", ["login"], {}, [])]
 
         objects = Objects(functions=functions, classes=classes)
-        result = objects.strings
-
-        assert "src/utils.py:000:helper" in result
-        assert "src/models.py:001:User.login" in result
-        assert len(result) == 2
-
-    def test_strings_without_methods(self):
-        functions = [(Path("src/utils.py"), 0, "helper")]
-        classes = [(Path("src/models.py"), 1, "User", ["login"], {}, [])]
-
-        objects = Objects(functions=functions, classes=classes)
-        result = objects.strings_without_methods
+        result: list = objects.strings_without_methods
 
         assert "src/utils.py:000:helper" in result
         assert "src/models.py:001:User" in result
         assert len(result) == 2
 
-    def test_classes_only(self):
-        functions = []
-        classes = [
+    def test_classes_only(self) -> None:
+        functions: list[tuple[Path, int, str]] = []
+        classes: list[ClassInfo] = [
             (Path("src/models.py"), 0, "User", ["login", "logout"], {}, []),
             (Path("src/base.py"), 1, "BaseModel", ["save", "delete"], {}, []),
             (Path("src/admin.py"), 2, "AdminUser", ["ban_user"], {}, ["User"]),
         ]
 
-        objects = Objects(functions=functions, classes=classes)
+        result: list[str] = Objects(functions=functions, classes=classes).classes_only
         # Note: classes are sorted by path, methods are processed in order
         expected = [
             "src/admin.py:002:AdminUser",
@@ -93,13 +60,12 @@ class TestObjects:
             "src/models.py:000:User",
         ]
 
-        result = objects.classes_only
         assert result == expected
 
-    def test_methodless(self):
+    def test_methodless(self) -> None:
         # classes without methods
-        functions = []
-        classes = [
+        functions: list[tuple[Path, int, str]] = []
+        classes: list[ClassInfo] = [
             (Path("src/models.py"), 0, "User", ["login"], {}, []),
             (Path("src/empty.py"), 1, "EmptyClass", [], {}, []),
             (Path("src/data.py"), 2, "DataClass", [], {}, []),
@@ -110,10 +76,80 @@ class TestObjects:
 
         assert objects.methodless == expected
 
-    def test_apply(self):
+    def test_test_only(self) -> None:
+        functions = [
+            (Path("src/module.py"), 3, "test_function"),
+            (Path("src/utils.py"), 5, "helper_func"),
+            (Path("lib/core.py"), 12, "process_data"),
+        ]
+        classes: list[ClassInfo] = [
+            (Path("src/models.py"), 0, "TestUser", ["login", "logout"], {}, []),
+            (Path("src/base.py"), 1, "BaseModel", ["save", "test_delete"], {}, []),
+            (Path("src/admin.py"), 2, "TestAdminUser", ["ban_user"], {}, ["User"]),
+        ]
+
+        test_objects: list[str] = Objects(functions=functions, classes=classes).test_only.strings(
+            include_inherited=False
+        )
+        expected = [
+            "src/admin.py:002:TestAdminUser.ban_user",
+            "src/models.py:000:TestUser.login",
+            "src/models.py:000:TestUser.logout",
+            "src/module.py:003:test_function",
+        ]
+
+        assert sorted(test_objects) == expected
+
+    def test_strings(self) -> None:
+        functions = [(Path("src/utils.py"), 0, "helper")]
+        classes: list[ClassInfo] = [(Path("src/models.py"), 1, "User", ["login"], {}, [])]
+
+        objects = Objects(functions=functions, classes=classes)
+        result: list = objects.strings()
+
+        assert "src/utils.py:000:helper" in result
+        assert "src/models.py:001:User.login" in result
+        assert len(result) == 2
+
+    def test_classes(self) -> None:
+        functions = [(Path("src/utils.py"), 0, "helper")]
+        classes: list[ClassInfo] = [
+            (Path("src/models.py"), 0, "User", ["login", "logout"], {}, []),
+            (Path("src/base.py"), 1, "BaseModel", ["save", "test_delete"], {}, []),
+            (Path("src/admin.py"), 2, "AdminUser", ["ban_user"], {}, ["User"]),
+        ]
+
+        objects = Objects(functions=functions, classes=classes)
+
+        assert objects._all_classes == objects.classes() != objects._classes
+
+    def test_method_strings(self) -> None:
+        functions = [(Path("src/utils.py"), 0, "helper")]
+        classes: list[ClassInfo] = [
+            (Path("src/models.py"), 0, "User", ["login", "logout"], {}, []),
+            (Path("src/base.py"), 1, "BaseModel", ["save", "test_delete"], {}, []),
+            (Path("src/admin.py"), 2, "AdminUser", ["ban_user"], {}, ["User"]),
+        ]
+
+        expected = [
+            "src/admin.py:002:AdminUser.ban_user",
+            "src/admin.py:002:AdminUser.login",
+            "src/admin.py:002:AdminUser.logout",
+            "src/base.py:001:BaseModel.save",
+            "src/base.py:001:BaseModel.test_delete",
+            "src/models.py:000:User.login",
+            "src/models.py:000:User.logout",
+        ]
+
+        objects = Objects(functions=functions, classes=classes)
+        result: list = objects.method_strings()
+
+        assert sorted(result) == expected
+
+    def test_apply(self) -> None:
         # 'apply' method with processor function
         functions = [(Path("src/utils.py"), 0, "test_func")]
-        classes = [(Path("src/models.py"), 1, "User", ["login"], {}, [])]
+        classes: list[ClassInfo] = [(Path("src/models.py"), 1, "User", ["login"], {}, [])]
 
         objects = Objects(functions=functions, classes=classes)
 
@@ -121,7 +157,7 @@ class TestObjects:
         def add_prefix(s):
             return f"processed_{s}"
 
-        result = objects.apply(add_prefix)
+        result: list = objects.apply(add_prefix)
         assert all(s.startswith("processed_") for s in result)
 
         # with ignore pattern
@@ -131,7 +167,7 @@ class TestObjects:
         assert "processed_src/utils.py:000:test_func" in result
 
         # with classes_only
-        empty_classes = [(Path("src/empty.py"), 2, "Empty", [], {}, [])]
+        empty_classes: list[ClassInfo] = [(Path("src/empty.py"), 2, "Empty", [], {}, [])]
         objects_with_classes_only = Objects(functions=functions, classes=classes + empty_classes)
 
         result = objects_with_classes_only.apply(add_prefix, classes_only=True)
@@ -145,7 +181,7 @@ class TestObjects:
         assert all("models" not in s for s in result)
 
 
-def test_collect_method_info():
+def test_collect_method_info() -> None:
     class_text = """class User:
     def __init__(self, name):
         self.name = name
@@ -195,7 +231,7 @@ def test_collect_method_info():
     assert "reset" in method_names
 
 
-def test_parse_function():
+def test_parse_function() -> None:
     func_text = """def test_function(arg1, arg2):
     return arg1 + arg2"""
 
@@ -221,7 +257,7 @@ def get_value(self):
     assert result == "complex_function"
 
 
-def test_collect_objects_in_md():
+def test_collect_objects_in_md() -> None:
     md_content = """# structlint.utils
 
 This is the documentation page for the module `utils`.
@@ -268,7 +304,7 @@ Some other text.
     assert all(isinstance(item, tuple) and len(item) == 2 for item in result)
 
 
-def test_collect_docs_objects():
+def test_collect_docs_objects() -> None:
     with (
         patch("pathlib.Path.rglob") as mock_rglob,
         patch("pathlib.Path.read_text") as mock_read_text,
@@ -289,10 +325,10 @@ def test_collect_docs_objects():
 
             assert isinstance(result, Objects)
             assert len(result.functions) >= 0
-            assert len(result.classes) == 0
+            assert len(result.classes()) == 0
 
 
-def test_collect_object_texts():
+def test_collect_object_texts() -> None:
     source_code = """def function1():
     pass
 
@@ -312,7 +348,7 @@ class DataClass:
 
 
 class TestClass:
-    def test_method(self):
+    def test_method(self) -> None:
         pass
 
 
@@ -337,19 +373,19 @@ def last_function():
     assert any("DataClass" in text for text in result)
 
 
-def test_collect_source_objects():
+def test_collect_source_objects() -> None:
     with (
         patch("pathlib.Path.rglob") as mock_rglob,
         patch("pathlib.Path.read_text") as mock_read_text,
         patch("pathlib.Path.relative_to") as mock_relative_to,
     ):
         mock_file = Mock()
-        mock_read_text.return_value = """def test_function():
+        mock_read_text.return_value = """def test_function() -> None:
     pass
 
 
 class TestClass:
-    def test_method(self):
+    def test_method(self) -> None:
         pass
 
 
@@ -382,8 +418,8 @@ def last_function():
         #     patch("your_module.parse_function") as mock_parse_func,
         # ):
         #     mock_collect_texts.return_value = [
-        #         "def test_function():\n    pass",
-        #         "class TestClass:\n    def test_method(self):\n        pass",
+        #         "def test_function() -> None:\n    pass",
+        #         "class TestClass:\n    def test_method(self) -> None:\n        pass",
         #     ]
         #     mock_collect_methods.return_value = ("TestClass", ["test_method"], {}, [])
         #     mock_parse_func.return_value = "test_function"
@@ -392,11 +428,11 @@ def last_function():
 
         assert isinstance(result, Objects)
         assert len(result.functions) >= 0
-        assert len(result.classes) >= 0
+        assert len(result.classes()) >= 0
 
 
-def test_add_inherited_methods():
-    class_tuples = [
+def test_add_inherited_methods() -> None:
+    class_tuples: list[ClassInfo] = [
         (Path("base.py"), 0, "BaseClass", ["base_method"], {}, []),
         (Path("child.py"), 1, "ChildClass", ["child_method"], {}, ["BaseClass"]),
         (Path("grandchild.py"), 2, "GrandChild", ["grand_method"], {}, ["ChildClass"]),
@@ -416,7 +452,7 @@ def test_add_inherited_methods():
     assert "child_method" in grandchild_class[3]
     assert "grand_method" in grandchild_class[3]
 
-    class_tuples_multi = [
+    class_tuples_multi: list[ClassInfo] = [
         (Path("a.py"), 0, "ClassA", ["method_a"], {}, []),
         (Path("b.py"), 1, "ClassB", ["method_b"], {}, []),
         (Path("c.py"), 2, "ClassC", ["method_c"], {}, ["ClassA", "ClassB"]),
@@ -429,7 +465,9 @@ def test_add_inherited_methods():
     assert "method_b" in class_c[3]
     assert "method_c" in class_c[3]
 
-    class_tuples_no_inherit = [(Path("standalone.py"), 0, "Standalone", ["solo_method"], {}, [])]
+    class_tuples_no_inherit: list[ClassInfo] = [
+        (Path("standalone.py"), 0, "Standalone", ["solo_method"], {}, [])
+    ]
 
     result = add_inherited_methods(class_tuples_no_inherit)
     standalone = result[0]
@@ -438,11 +476,11 @@ def test_add_inherited_methods():
     assert len(result) == 1
 
 
-def test_objects__edgecases():
+def test_objects__edgecases() -> None:
     empty_objects = Objects(functions=[], classes=[])
     assert empty_objects.function_strings == []
-    assert empty_objects.method_strings == []
-    assert empty_objects.strings == []
+    assert empty_objects.method_strings() == []
+    assert empty_objects.strings() == []
     assert empty_objects.methodless == []
 
     def empty_processor(s):
@@ -451,7 +489,7 @@ def test_objects__edgecases():
     assert empty_objects.apply(empty_processor) == []
 
 
-def test_collect_method_info__edgecases():
+def test_collect_method_info__edgecases() -> None:
     empty_class = "class Empty:\n    pass"
     result = collect_method_info(empty_class)
     assert result[0] == "Empty"
@@ -463,7 +501,7 @@ def test_collect_method_info__edgecases():
     assert len(result) == 4
 
 
-def test_parse_function__edgecases():
+def test_parse_function__edgecases() -> None:
     non_function = "not a function"
     result = parse_function(non_function)
     assert result is None or result == ""

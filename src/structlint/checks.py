@@ -24,7 +24,7 @@ from .reporting import (
 
 def check_method_order(cfg: Configuration, source_objects: Objects) -> tuple[str, bool]:
     out_of_order = []
-    classes = source_objects.classes
+    classes = source_objects.classes(include_inherited=False)
 
     for path, _, classname, methods, method_dict, __ in classes:
         if methods != (sorted_methods := sort_methods(method_dict, cfg.methods)):
@@ -64,7 +64,7 @@ def check_tests_structure(
     cfg: Configuration, source_objects: Objects, tests_objects: Objects
 ) -> tuple[str, bool]:
     tests_objects = tests_objects.test_only
-    actual: list[str] = sort_on_path(tests_objects.strings)
+    actual: list[str] = sort_on_path(tests_objects.strings(include_inherited=True))
     expected: list[str] = sort_on_path(
         source_objects.apply(partial(map_to_test, cfg=cfg), cfg.tests.ignore)
     )

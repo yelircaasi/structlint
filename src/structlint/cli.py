@@ -6,6 +6,7 @@ import sys
 
 import click
 
+from . import __version__
 from .checks import (
     check_docs_structure,
     check_imports,
@@ -25,12 +26,20 @@ def main():
 
 
 @click.group(invoke_without_command=True)
+@click.version_option(__version__)
 @click.pass_context
 def structlint_cli(ctx: click.Context):
     ctx.ensure_object(dict)["CFG"] = Configuration.read()  # TODO: support passing explicit config
 
     if ctx.invoked_subcommand is None:
         return ctx.invoke(run_all)
+
+
+@structlint_cli.command(name="version")
+def version() -> bool:
+    click.echo(f"structlint, version {__version__}")
+
+    return False
 
 
 @structlint_cli.command(name="all", help="Run all checks: methods, docs, tests, imports.")
