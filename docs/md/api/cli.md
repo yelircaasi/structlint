@@ -20,6 +20,14 @@
         show_root_heading: true
         show_source: false
 
+### ::: structlint.cli.version
+    handler: python
+    options:
+        show_root_full_path: false
+        summary: false
+        show_root_heading: true
+        show_source: false
+
 ### ::: structlint.cli.run_all
     handler: python
     options:

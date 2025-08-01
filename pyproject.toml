@@ -1,6 +1,6 @@
 [project]
 name = "structlint"
-version = "0.1.2"
+version = "0.1.4"
 description = "Simple linter to enforce various aspects of source code structure."
 authors = [{name = "Isaac Riley", email = "yelircaasi@proton.me"}]
 readme = "README.md"
