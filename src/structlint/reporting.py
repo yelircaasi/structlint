@@ -87,7 +87,11 @@ def make_unexpected_report(unexpected: list[str], painter: Callable[[str], str])
 
 
 def make_order_report(
-    actual: list[str], expected: list[str], overlap: set[str], painter: Callable[[str], str]
+    actual: list[str],
+    expected: list[str],
+    overlap: set[str],
+    painter: Callable[[str], str],
+    ignore: re.Pattern,
 ) -> str:
     minlen = max(map(len, overlap)) + 18 if overlap else 5
 
@@ -101,8 +105,11 @@ def make_order_report(
                 f"{Color.red(expected_method.split(':')[-1])}"
             )
 
-    actual = list(filter(lambda p: p in overlap, actual))
-    expected = list(filter(lambda p: p in overlap, expected))
+    def _filter(s: str) -> bool:
+        return (s in overlap) and not (re.search(ignore, s))
+
+    actual = list(filter(_filter, actual))
+    expected = list(filter(_filter, expected))
     if actual == expected:
         return ""
     return (
@@ -120,12 +127,13 @@ def make_discrepancy_report(
     overlap: set[str],
     specific_path: Path,
     root_dir: Path,
+    ignore: re.Pattern,
 ):
     title = f" {title.upper()} "
     paint = make_colorize_path(specific_path, root_dir)
     actual = list(map(remove_ordering_index, actual))
     expected = list(map(remove_ordering_index, expected))
-    order_report = make_order_report(actual, expected, overlap, paint)
+    order_report = make_order_report(actual, expected, overlap, paint, ignore)
 
     if not (missing or unexpected or order_report):
         return f"\n{make_double_bar(title)}\n\n    {Color.green('No problems detected.')}"

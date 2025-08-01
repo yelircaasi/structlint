@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from structlint.regexes import Regex
 from structlint.reporting import (
     display_disallowed,
     make_discrepancy_report,
@@ -90,19 +91,19 @@ def test_make_unexpected_report() -> None:
 
 
 def test_make_order_report() -> None:
-    result = make_order_report([], [], set(), lambda s: s)
+    result = make_order_report([], [], set(), lambda s: s, Regex.MATCH_NOTHING)
     assert result == ""
 
     actual = ["mod:a", "mod:b"]
     expected = ["mod:a", "mod:b"]
     overlap = {"mod:a", "mod:b"}
-    result = make_order_report(actual, expected, overlap, lambda s: s)
+    result = make_order_report(actual, expected, overlap, lambda s: s, Regex.MATCH_NOTHING)
     assert result == ""
 
     actual = ["mod:a", "mod:b"]
     expected = ["mod:b", "mod:a"]
     overlap = {"mod:a", "mod:b"}
-    result = make_order_report(actual, expected, overlap, lambda s: f"{s}")
+    result = make_order_report(actual, expected, overlap, lambda s: f"{s}", Regex.MATCH_NOTHING)
     assert "ORDERING MISMATCH" in result
     assert "mod:a" in result
     assert "a" in result or "b" in result
@@ -110,14 +111,22 @@ def test_make_order_report() -> None:
     actual = ["mod:a", "mod:c", "mod:b"]
     expected = ["mod:a", "mod:b", "mod:c"]
     overlap = {"mod:a", "mod:b", "mod:c"}
-    result = make_order_report(actual, expected, overlap, lambda s: s)
+    result = make_order_report(actual, expected, overlap, lambda s: s, Regex.MATCH_NOTHING)
     assert "mod:b" in result
     assert "mod:c" in result
 
 
 def test_make_discrepancy_report(tmp_path):
     report = make_discrepancy_report(
-        "test", ["a"], ["a"], [], [], {"a"}, specific_path=tmp_path / "x.py", root_dir=tmp_path
+        "test",
+        ["a"],
+        ["a"],
+        [],
+        [],
+        {"a"},
+        specific_path=tmp_path / "x.py",
+        root_dir=tmp_path,
+        ignore=Regex.MATCH_NOTHING,
     )
     assert "No problems detected" in report
     assert "TEST" in report
@@ -131,6 +140,7 @@ def test_make_discrepancy_report(tmp_path):
         {"2"},
         specific_path=tmp_path / "demo.py",
         root_dir=tmp_path,
+        ignore=Regex.MATCH_NOTHING,
     )
     assert "MISSING" in report
     assert "3" in report

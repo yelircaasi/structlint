@@ -1,6 +1,6 @@
 [project]
 name = "structlint"
-version = "0.1.4"
+version = "0.2.0"
 description = "Simple linter to enforce various aspects of source code structure."
 authors = [{name = "Isaac Riley", email = "yelircaasi@proton.me"}]
 readme = "README.md"
@@ -309,6 +309,7 @@ mangled = 6
 md_dir = "docs/md/api"
 allow_additional = false
 ignore = "exceptions.py|:_[A-Z]"
+order_ignore = ""
 file_per_class = ""
 file_per_directory = "linus|guido|grace|utils"
 
@@ -317,6 +318,7 @@ unit_dir = "tests/unit"
 use_filename_suffix = true
 allow_additional = "__edgecases|__error"
 ignore = ":main$|configuration\\.py.+\\.__eq__|configuration\\.py.+\\.__repr__|:test__[A-Z]|__init__$|_abcs|exceptions|__get_pydantic_core_schema__"
+order_ignore = ""
 file_per_class = ""
 file_per_directory = ""
 function_per_class = ""

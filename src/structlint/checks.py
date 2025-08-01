@@ -55,6 +55,7 @@ def check_docs_structure(
             overlap,
             cfg.docs.md_dir,
             cfg.root_dir,
+            cfg.docs.order_ignore,
         ),
         any((missing, unexpected)),
     )
@@ -82,6 +83,7 @@ def check_tests_structure(
             overlap,
             cfg.tests.unit_dir,
             cfg.root_dir,
+            cfg.tests.order_ignore,
         ),
         any((missing, unexpected)),
     )

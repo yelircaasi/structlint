@@ -41,6 +41,12 @@ class DocsConfig:
         analysis of documentation structure.
     """
 
+    order_ignore: re.Pattern = Regex.MATCH_NOTHING
+    """
+    Regular expression matching any files or objects that should not be included in the
+        analysis of documentation object ordering.
+    """
+
     file_per_class: re.Pattern = Regex.MATCH_NOTHING
     """ Regular expression matching any classes (including path) that should be
         promoted to thir own .md file."""
@@ -63,6 +69,7 @@ class DocsConfig:
             f'md_dir = "{self.md_dir}"\n'
             f'allow_additional = "{self.allow_additional.pattern}"\n'
             f'ignore = "{self.ignore.pattern}"\n'
+            f'order_ignore = "{self.order_ignore.pattern}"\n'
             f'file_per_directory = "{self.file_per_directory.pattern}"\n'
             f'file_per_class = "{self.file_per_class.pattern}"\n'
             f"replace_double_underscore = {str(self.replace_double_underscore).lower()}"
@@ -79,6 +86,7 @@ class DocsConfig:
             "md_dir": "docs/md",
             "allow_additional": False,
             "ignore": "",
+            "order_ignore": "",
             "file_per_directory": "",
             "file_per_class": "",
             "replace_double_underscore": False,
@@ -88,6 +96,7 @@ class DocsConfig:
             md_dir=Path(raw["md_dir"]),
             allow_additional=compile_string_or_bool(raw["allow_additional"]),
             ignore=make_regex(raw["ignore"]),
+            order_ignore=make_regex(raw["order_ignore"]),
             file_per_directory=make_regex(raw["file_per_directory"]),
             file_per_class=make_regex(raw["file_per_class"]),
             replace_double_underscore=assert_bool(raw["replace_double_underscore"]),
@@ -99,6 +108,7 @@ class DocsConfig:
         md_dir: Path | None = None,
         allow_additional: re.Pattern | None = None,
         ignore: re.Pattern | None = None,
+        order_ignore: re.Pattern | None = None,
         file_per_class: re.Pattern | None = None,
         file_per_directory: re.Pattern | None = None,
         replace_double_underscore: bool | None = None,
@@ -106,6 +116,7 @@ class DocsConfig:
         self.md_dir = md_dir or self.md_dir
         self.allow_additional = allow_additional or self.allow_additional
         self.ignore = ignore or self.ignore
+        self.order_ignore = order_ignore or self.order_ignore
         self.file_per_class = file_per_class or self.file_per_class
         self.file_per_directory = file_per_directory or self.file_per_directory
         self.replace_double_underscore = replace_double_underscore or self.replace_double_underscore
@@ -373,6 +384,7 @@ class UnitTestsConfig:
     use_filename_suffix: bool = field(default=True)
     allow_additional: re.Pattern = field(default=Regex.MATCH_NOTHING)
     ignore: re.Pattern = field(default=Regex.MATCH_NOTHING)
+    order_ignore: re.Pattern = field(default=Regex.MATCH_NOTHING)
     file_per_class: re.Pattern = field(default=Regex.MATCH_NOTHING)
     file_per_directory: re.Pattern = field(default=Regex.MATCH_NOTHING)
     function_per_class: re.Pattern = field(default=Regex.MATCH_NOTHING)
@@ -388,6 +400,7 @@ class UnitTestsConfig:
             f"use_filename_suffix = {str(self.use_filename_suffix).lower()}\n"
             f'allow_additional = "{self.allow_additional.pattern}"\n'
             f'ignore = "{self.ignore.pattern}"\n'
+            f'order_ignore = "{self.order_ignore.pattern}"\n'
             f'file_per_directory = "{self.file_per_directory.pattern}"\n'
             f'file_per_class = "{self.file_per_class.pattern}"\n'
             f'function_per_class = "{self.function_per_class.pattern}"\n'
@@ -406,6 +419,7 @@ class UnitTestsConfig:
             "use_filename_suffix": True,
             "allow_additional": False,
             "ignore": "",
+            "order_ignore": "",
             "file_per_class": "",
             "file_per_directory": "",
             "function_per_class": "",
@@ -417,6 +431,7 @@ class UnitTestsConfig:
             use_filename_suffix=assert_bool(raw["use_filename_suffix"]),
             allow_additional=compile_string_or_bool(raw["allow_additional"]),
             ignore=make_regex(raw["ignore"]),
+            order_ignore=make_regex(raw["order_ignore"]),
             file_per_class=make_regex(raw["file_per_class"]),
             file_per_directory=make_regex(raw["file_per_directory"]),
             function_per_class=make_regex(raw["function_per_class"]),
@@ -430,6 +445,7 @@ class UnitTestsConfig:
         use_filename_suffix: bool | None = None,
         allow_additional: re.Pattern | None = None,
         ignore: re.Pattern | None = None,
+        order_ignore: re.Pattern | None = None,
         file_per_class: re.Pattern | None = None,
         file_per_directory: re.Pattern | None = None,
         function_per_class: re.Pattern | None = None,
@@ -438,6 +454,7 @@ class UnitTestsConfig:
         self.unit_dir = unit_dir or self.unit_dir
         self.use_filename_suffix = use_filename_suffix or self.use_filename_suffix
         self.allow_additional = allow_additional or self.allow_additional
+        self.order_ignore = order_ignore or self.order_ignore
         self.ignore = ignore or self.ignore
         self.file_per_class = file_per_class or self.file_per_class
         self.file_per_directory = file_per_directory or self.file_per_directory
