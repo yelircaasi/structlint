@@ -7,6 +7,7 @@ from collections.abc import Callable
 from functools import partial
 from itertools import chain
 from pathlib import Path
+from typing import Self
 
 from .regexes import Regex
 from .utils import (
@@ -61,6 +62,13 @@ class Objects:
     @property
     def methodless(self) -> list[str]:
         return [f"{p}:{i:0>3}:{cl}" for p, i, cl, methods, _, __ in self.classes if not methods]
+
+    @property
+    def test_only(self) -> Self:
+        self.functions = list(filter(lambda t: "test" in t[-1], self.functions))
+        self.classes = list(filter(lambda t: "Test" in t[2], self.classes))
+
+        return self
 
     def apply(
         self,
@@ -134,7 +142,10 @@ def collect_object_texts(source: str) -> list[str]:
     return re.findall(Regex.OBJECT_TEXT, source)
 
 
-def collect_source_objects(src_dir: Path, root_dir: Path) -> Objects:
+def collect_source_objects(
+    src_dir: Path,
+    root_dir: Path,
+) -> Objects:
     functions: list[tuple[Path, int, str]] = []
     classes: list[ClassInfo] = []
 

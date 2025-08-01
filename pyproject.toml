@@ -1,8 +1,8 @@
 [project]
 name = "structlint"
-version = "0.1.1"
+version = "0.1.2"
 description = "Simple linter to enforce various aspects of source code structure."
-authors = [{name = "Frodo Baggins", email = "frodo.baggins@shire.com"}]
+authors = [{name = "Isaac Riley", email = "yelircaasi@proton.me"}]
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [

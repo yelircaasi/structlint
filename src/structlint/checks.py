@@ -63,6 +63,7 @@ def check_docs_structure(
 def check_tests_structure(
     cfg: Configuration, source_objects: Objects, tests_objects: Objects
 ) -> tuple[str, bool]:
+    tests_objects = tests_objects.test_only
     actual: list[str] = sort_on_path(tests_objects.strings)
     expected: list[str] = sort_on_path(
         source_objects.apply(partial(map_to_test, cfg=cfg), cfg.tests.ignore)

@@ -45,3 +45,15 @@ def test_tsts(capsys):
     result = runner.invoke(structlint_cli, ["tests"])
     assert result.exit_code == 0
     assert "No problems detected." in result.output
+
+
+def test_show_config():
+    runner = CliRunner()
+    result = runner.invoke(structlint_cli, ["show-config"])
+    assert "[tool.structlint]" in result.output
+
+
+def test_show_default_config():
+    runner = CliRunner()
+    result = runner.invoke(structlint_cli, ["show-default-config"])
+    assert "[tool.structlint]" in result.output

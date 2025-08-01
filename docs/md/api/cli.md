@@ -59,3 +59,19 @@
         summary: false
         show_root_heading: true
         show_source: false
+
+### ::: structlint.cli.show_config
+    handler: python
+    options:
+        show_root_full_path: false
+        summary: false
+        show_root_heading: true
+        show_source: false
+
+### ::: structlint.cli.show_default_config
+    handler: python
+    options:
+        show_root_full_path: false
+        summary: false
+        show_root_heading: true
+        show_source: false
