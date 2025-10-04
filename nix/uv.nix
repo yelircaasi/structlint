@@ -6,9 +6,9 @@
 }: let
     custom = import ./custom-packages.nix {inherit pkgs;};
 
-    pythonPackage = pkgs.python312;
+    pythonPackage = pkgs.python313;
 
-    pythonPackages = pkgs.python312Packages;
+    pythonPackages = pkgs.python313Packages;
 
     sharedEnv = {};
 

@@ -5,6 +5,7 @@ Simple and intuitive command-line interface for structlint.
 import sys
 
 import click
+from loguru import logger
 
 from . import __version__
 from .checks import (
@@ -19,17 +20,33 @@ from .collection import (
 )
 from .configuration import Configuration
 
+V_MESSAGE = " Verbosity level (-v, -vv, -vvv)"
+LEVEL_MESSAGE = " Explicit logging level (WARNING|INFO|DEBUG|TRACE)"
 
-def main():
+
+def set_up_logger(level: str | None, v: int) -> None:
+    log_level = (level or ("WARNING", "INFO", "DEBUG", "TRACE")[v := min(v, 3)]).upper()
+    logger.remove()
+    logger.add(sys.stderr, level=log_level)
+    if level and v:
+        logger.warning("Conflicting options 'level' and '-v': 'level' takes precedence.")
+    logger.debug(f"Logging level: '{log_level}'")
+
+
+def main() -> None:
     problems = structlint_cli(standalone_mode=False)
+
     sys.exit(int(problems))
 
 
 @click.group(invoke_without_command=True)
+@click.option("-v", count=True, default=0, help=V_MESSAGE)
+@click.option("--level", type=str, help=LEVEL_MESSAGE)
 @click.version_option(__version__)
 @click.pass_context
-def structlint_cli(ctx: click.Context):
+def structlint_cli(ctx: click.Context, level: str | None, v: int):
     ctx.ensure_object(dict)["CFG"] = Configuration.read()  # TODO: support passing explicit config
+    set_up_logger(level, v)
 
     if ctx.invoked_subcommand is None:
         return ctx.invoke(run_all)
@@ -43,9 +60,12 @@ def version() -> bool:
 
 
 @structlint_cli.command(name="all", help="Run all checks: methods, docs, tests, imports.")
+@click.option("-v", count=True, default=0, help=V_MESSAGE)
+@click.option("--level", type=str, help=LEVEL_MESSAGE)
 @click.pass_context
-def run_all(ctx: click.Context) -> bool:
+def run_all(ctx: click.Context, level: str | None, v: int) -> bool:
     cfg: Configuration = ctx.obj["CFG"]
+    set_up_logger(level, v)
 
     source_objects = collect_source_objects(cfg.module_root_dir, cfg.root_dir)
     tests_objects = collect_source_objects(cfg.tests.unit_dir, cfg.root_dir)
@@ -66,9 +86,13 @@ def run_all(ctx: click.Context) -> bool:
 
 
 @structlint_cli.command(help="Verify documentation presence and formatting.")
+@click.option("-v", count=True, default=0, help=V_MESSAGE)
+@click.option("--level", type=str, help=LEVEL_MESSAGE)
 @click.pass_context
-def docs(ctx: click.Context) -> bool:
+def docs(ctx: click.Context, level: str | None, v: int) -> bool:
     cfg: Configuration = ctx.obj["CFG"]
+    set_up_logger(level, v)
+
     source_objects = collect_source_objects(cfg.module_root_dir, cfg.root_dir)
     docs_objects = collect_docs_objects(cfg.docs.md_dir, cfg.root_dir)
 
@@ -80,9 +104,13 @@ def docs(ctx: click.Context) -> bool:
 
 
 @structlint_cli.command(help="Inspect import structures and dependencies.")
+@click.option("-v", count=True, default=0, help=V_MESSAGE)
+@click.option("--level", type=str, help=LEVEL_MESSAGE)
 @click.pass_context
-def imports(ctx: click.Context) -> bool:
+def imports(ctx: click.Context, level: str | None, v: int) -> bool:
     cfg = ctx.obj["CFG"]
+    set_up_logger(level, v)
+
     report, problems = check_imports(cfg.imports, cfg.module_name)
     click.echo(report)
     click.echo()
@@ -91,9 +119,13 @@ def imports(ctx: click.Context) -> bool:
 
 
 @structlint_cli.command(help="Check method structure and naming conventions.")
+@click.option("-v", count=True, default=0, help=V_MESSAGE)
+@click.option("--level", type=str, help=LEVEL_MESSAGE)
 @click.pass_context
-def methods(ctx: click.Context) -> bool:
+def methods(ctx: click.Context, level: str | None, v: int) -> bool:
     cfg: Configuration = ctx.obj["CFG"]
+    set_up_logger(level, v)
+
     source_objects = collect_source_objects(cfg.module_root_dir, cfg.root_dir)
     report, problems = check_method_order(cfg, source_objects)
     click.echo(report)
@@ -103,9 +135,14 @@ def methods(ctx: click.Context) -> bool:
 
 
 @structlint_cli.command(name="tests", help="Check test organization and conventions.")
+@click.option("-v", count=True, default=0, help=V_MESSAGE)
+@click.option("--level", type=str, help=LEVEL_MESSAGE)
 @click.pass_context
-def tsts(ctx: click.Context) -> bool:
+def tsts(ctx: click.Context, level: str | None, v: int) -> bool:
     cfg: Configuration = ctx.obj["CFG"]
+    print(level, v)
+    set_up_logger(level, v)
+
     source_objects = collect_source_objects(cfg.module_root_dir, cfg.root_dir)
     tests_objects = collect_source_objects(cfg.tests.unit_dir, cfg.root_dir)
 
