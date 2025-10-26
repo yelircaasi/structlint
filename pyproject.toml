@@ -1,6 +1,6 @@
 [project]
 name = "structlint"
-version = "0.2.0"
+version = "0.2.1"
 description = "Simple linter to enforce various aspects of source code structure."
 authors = [{name = "Isaac Riley", email = "yelircaasi@proton.me"}]
 readme = "README.md"
@@ -58,7 +58,7 @@ cli-utils = [
     "pydeps          >= 1.12   ",
     "bandit          >= 1.8    ",
     "cyclonedx-bom   >= 5.1    ",
-    "ty              >= 0.0.1a5",
+    "ty              >= 0.0.0",
 ]
 
 [build-system]
